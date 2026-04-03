@@ -5,7 +5,7 @@ Production-ready TypeScript SDK for the Medicine API.
 ## Installation
 
 ```bash
-npm install @reza/medicine-sdk
+npm install @reza9167/medicine-sdk
 ```
 
 ## Quick Start
