@@ -1,4 +1,4 @@
-# @reza/medicine-sdk
+# @reza9167/medicine-sdk
 
 Production-ready TypeScript SDK for the Medicine API.
 
@@ -11,11 +11,11 @@ npm install @reza9167/medicine-sdk
 ## Quick Start
 
 ```ts
-import { MedicineSDK } from "@reza/medicine-sdk";
+import { MedicineSDK } from "@reza9167/medicine-sdk";
 
 const sdk = new MedicineSDK({
   apiKey: "test_key",
-  baseURL: "https://api.reza.com",
+  baseURL: "https://api.reza9167.com",
   timeoutMs: 10000,
   maxRetries: 2,
   debug: true,
@@ -84,7 +84,7 @@ await sdk.brands.search("beximco");
 ## Error Handling
 
 ```ts
-import { APIError } from "@reza/medicine-sdk";
+import { APIError } from "@reza9167/medicine-sdk";
 
 try {
   await sdk.medicines.getById("unknown");
@@ -124,7 +124,7 @@ sdk
 ## Plugin Example
 
 ```ts
-import type { SDKPlugin } from "@reza/medicine-sdk";
+import type { SDKPlugin } from "@reza9167/medicine-sdk";
 
 const tracingPlugin: SDKPlugin = {
   name: "tracing",
