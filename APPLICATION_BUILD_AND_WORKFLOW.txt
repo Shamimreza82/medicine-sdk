@@ -1,0 +1,170 @@
+Medicine SDK - Build and Working Details
+========================================
+
+Overview
+--------
+This project is a TypeScript SDK named @reza/medicine-sdk.
+It provides a typed client for a Medicine API with:
+- authentication
+- retries with backoff
+- middleware hooks
+- optional GET response caching
+- resource-based endpoint access
+
+Tech Stack
+----------
+- TypeScript
+- Node.js >= 18
+- axios (HTTP requests)
+- tsup (build tool)
+
+Important Files
+---------------
+- src/index.ts: public exports
+- src/client.ts: main MedicineSDK class
+- src/config.ts: SDK config and middleware/plugin types
+- src/utils/request.ts: HttpClient (core request engine)
+- src/utils/query-builder.ts: query parameter builder
+- src/resources/medicines.ts: medicines endpoints
+- src/resources/generics.ts: generics endpoints
+- src/resources/brands.ts: brands endpoints
+- src/errors/api-error.ts: APIError class
+- src/types/medicine.types.ts: all API/domain types
+- package.json: scripts, exports, package setup
+
+How Build Works
+---------------
+1) Code is written in src as TypeScript.
+2) npm run build does:
+   - clean dist folder
+   - run tsup bundle
+3) dist output includes:
+   - index.js (ESM)
+   - index.cjs (CommonJS)
+   - index.d.ts (types)
+4) package.json exports map decides import/require entry points.
+5) prepublishOnly runs build before publish.
+
+Build Commands
+--------------
+- npm run dev
+- npm run build
+- npm run publish:npm
+
+How Application Works at Runtime
+--------------------------------
+1) User creates new MedicineSDK(config).
+2) SDK creates one shared HttpClient.
+3) SDK exposes resource modules:
+   - medicines
+   - generics
+   - brands
+4) Resource method builds query and calls HttpClient.request().
+5) HttpClient applies auth, middleware, retry, and cache rules.
+6) Typed response data is returned.
+7) Errors are normalized to APIError.
+
+Config and Defaults
+-------------------
+Supported config:
+- apiKey or bearerToken
+- baseURL
+- timeoutMs
+- maxRetries
+- retryDelayMs
+- debug
+- userAgent
+- cacheEnabled
+- cacheTtlMs
+
+Default values:
+- baseURL: https://api.reza.com
+- timeoutMs: 10000
+- maxRetries: 2
+- retryDelayMs: 400
+- cacheEnabled: false
+- cacheTtlMs: 30000
+
+Authentication
+--------------
+If skipAuth is not set:
+- use "ApiKey <apiKey>" when apiKey exists
+- else use "Bearer <bearerToken>" when bearerToken exists
+- else send no Authorization header
+
+Request Flow
+------------
+For each request:
+1) Build cache key from method/path/params/data.
+2) If GET and cache is enabled, return cached response if not expired.
+3) Build axios request config.
+4) Run request middleware chain.
+5) Send HTTP request.
+6) Run response middleware chain.
+7) Save to cache if GET and cache enabled.
+8) Return transformed response.
+
+Retry Logic
+-----------
+Retry happens when:
+- status 429 (rate limit)
+- status 5xx with idempotent method (GET/HEAD/OPTIONS)
+- network/no-status error with idempotent method
+
+Delay rules:
+- use Retry-After header if present
+- else exponential backoff:
+  retryDelayMs * 2^(attempt-1)
+
+Error Handling
+--------------
+Axios errors are converted to APIError with:
+- message
+- statusCode
+- code (if available)
+- details
+- requestId (from response body or x-request-id header)
+
+Unknown non-Error values become a fallback APIError.
+
+Middleware and Plugins
+----------------------
+Middleware types:
+- request middleware
+- response middleware
+- error middleware
+
+Plugins can register these through sdk.usePlugin(plugin).
+
+Resource Endpoints
+------------------
+Medicines:
+- GET /v1/medicines
+- GET /v1/medicines/{id}
+- GET /v1/medicines/search
+
+Generics:
+- GET /v1/generics
+- GET /v1/generics/{id}
+- GET /v1/generics/search
+
+Brands:
+- GET /v1/brands
+- GET /v1/brands/{id}
+- GET /v1/brands/search
+
+Query Builder
+-------------
+Supports:
+- page, limit
+- sortBy, sortOrder
+- filters
+
+Array filters are joined by comma.
+Undefined filter values are ignored.
+
+Notes
+-----
+- Update src/resources/* to change endpoint paths.
+- Update src/utils/request.ts to change global request behavior.
+- Add new resources by creating class + exposing it in MedicineSDK.
